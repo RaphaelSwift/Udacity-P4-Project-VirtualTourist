@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import MapKit
 import CoreData
 
 @objc(Pin)

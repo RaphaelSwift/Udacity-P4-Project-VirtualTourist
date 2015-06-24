@@ -61,6 +61,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         
         mapView.addAnnotations(convertPinsToAnnotations(self.pins))
+        FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: 40.0, searchLatitude: 30.0) { success, error in
+        }
     }
     
     //MARK: Helpers functions 
@@ -144,6 +146,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     //MARK: - MKMapViewDelegate methods
     
+    func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!) {
+        view.annotation.coordinate
+    }
     
     // Each time the region changes, save it
     func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
