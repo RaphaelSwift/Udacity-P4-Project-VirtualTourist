@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import CoreData
 
-class MapViewController: UIViewController, MKMapViewDelegate {
+class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsControllerDelegate {
     
     
     //MARK: - Class properties and attributes
@@ -25,11 +25,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     // Create an instance of our MapRegion class
     let mapRegion = MapRegion()
-    
-    // Create an empty array of pins
-    
-    var pins = [Pin]()
-    
     
     // Convenience lazy context var, for easy access to the shared Managed Object Context
     
@@ -51,16 +46,25 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         tapAndHoldGestureRecognizer = UILongPressGestureRecognizer(target: self, action: "handleLongPressure:")
         mapView.addGestureRecognizer(tapAndHoldGestureRecognizer!)
         
+        
+        // Set the delegate
+        fetchedResultController.delegate = self
+        
         // retrieve the pins from Core Data
-        pins = fetchAllPins()
+        var error: NSError? = nil
+        
+        fetchedResultController.performFetch(&error)
+        
+        if let error = error {
+            println(error.localizedDescription)
+        }
         
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(true)
         
-        
-        mapView.addAnnotations(convertPinsToAnnotations(self.pins))
+        self.mapView.addAnnotations(self.fetchedResultController.fetchedObjects)
         FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: 40.0, searchLatitude: 30.0) { success, error in
         }
     }
@@ -85,19 +89,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     //MARK: Core Data
     
-    func fetchAllPins() -> [Pin] {
-        
-        var error: NSError? = nil
-        
+    lazy var fetchedResultController: NSFetchedResultsController = {
+       
         let fetchRequest = NSFetchRequest(entityName: "Pin")
-        let results = sharedContext.executeFetchRequest(fetchRequest, error: &error)
         
-        if let error = error {
-            print(error.localizedDescription)
-        }
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "latitude", ascending: true)]
         
-        return results as? [Pin] ?? [Pin]()
-    }
+        let fetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        
+        return fetchedResultController
+        
+    }()
+
     
     //MARK: - Gestures Recognizer
     
@@ -126,34 +129,86 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 
             self.mapView.removeAnnotation(temporaryAnnotationPoint)
             
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = locationCoordinate
-            
             let dictionary: [String:AnyObject] = [
-                Pin.Keys.Latitude: annotation.coordinate.latitude,
-                Pin.Keys.Longitude: annotation.coordinate.longitude
+                Pin.Keys.Latitude: locationCoordinate.latitude,
+                Pin.Keys.Longitude: locationCoordinate.longitude
             ]
             
             let pin = Pin(dictionary: dictionary, context: self.sharedContext)
-            
-            self.mapView.addAnnotation(annotation)
             
             CoreDataStackManager.sharedInstance().saveContext()
 
         }
     }
     
-    
     //MARK: - MKMapViewDelegate methods
     
     func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!) {
-        view.annotation.coordinate
+        
+        let fetched = self.fetchedResultController.fetchedObjects as! [Pin]
+        for pin in fetched {
+            if pin.coordinate.latitude == view.annotation.coordinate.latitude && pin.coordinate.longitude == view.annotation.coordinate.longitude {
+                let indexPath = fetchedResultController.indexPathForObject(pin)
+                
+                // Once the corresponding pin is found, show the photoalbum and pass the data (pin)
+                let controller = storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
+                
+                controller.pin = pin
+                
+                self.navigationController?.pushViewController(controller, animated: true)
+                
+            }
+        }
+       
+    }
+    
+    func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView! {
+        /* Try to dequeue an existing pin view first */
+        
+        var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier("PhotoPin") as? MKPinAnnotationView
+        
+        /* If an existing pin view was not available, create one. */
+        
+        if pinView == nil {
+            
+            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "PhotoPin")
+            
+        } else {
+            
+            pinView?.annotation = annotation
+        }
+        
+        return pinView
     }
     
     // Each time the region changes, save it
     func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
         mapRegion.saveRegion(mapView.region)
     }
+    
+    
+    //MARK: - NSFetchedResultsControllerDelegate methods
+
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        
+        switch type {
+            
+        case .Insert:
+            self.mapView.addAnnotation(anObject as! Pin)
+            
+        case .Delete:
+            self.mapView.removeAnnotation(anObject as! Pin)
+            
+        case .Update:
+            return
+            
+        default:
+            return
+        }
+    }
+    
+    
     
 
 

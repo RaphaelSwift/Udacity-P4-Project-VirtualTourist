@@ -12,7 +12,7 @@ import CoreData
 
 @objc(Pin)
 
-class Pin: NSManagedObject {
+class Pin: NSManagedObject, MKAnnotation {
     
     struct Keys {
         static let Longitude = "longitude"
@@ -37,6 +37,14 @@ class Pin: NSManagedObject {
         longitude = dictionary[Pin.Keys.Longitude] as! Double
         latitude = dictionary[Pin.Keys.Latitude] as! Double
         
+    }
+    
+    
+    var coordinate: CLLocationCoordinate2D {
+        
+        let coord = CLLocationCoordinate2D(latitude: latitude as! Double, longitude: longitude as! Double)
+        
+        return coord
     }
     
     
