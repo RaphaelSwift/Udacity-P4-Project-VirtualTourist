@@ -16,6 +16,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     //MARK: - Class properties and attributes
     
     
+    @IBOutlet weak var label: UILabel!
     @IBOutlet weak var mapView: MKMapView!
     
     var tapAndHoldGestureRecognizer: UIGestureRecognizer? = nil
@@ -59,14 +60,13 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
             println(error.localizedDescription)
         }
         
+        self.mapView.addAnnotations(self.fetchedResultController.fetchedObjects)
+        
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(true)
         
-        self.mapView.addAnnotations(self.fetchedResultController.fetchedObjects)
-        FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: 40.0, searchLatitude: 30.0) { success, error in
-        }
     }
     
     //MARK: Helpers functions 
@@ -145,22 +145,73 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!) {
         
+        
         let fetched = self.fetchedResultController.fetchedObjects as! [Pin]
         for pin in fetched {
             if pin.coordinate.latitude == view.annotation.coordinate.latitude && pin.coordinate.longitude == view.annotation.coordinate.longitude {
-                let indexPath = fetchedResultController.indexPathForObject(pin)
+                
                 
                 // Once the corresponding pin is found, show the photoalbum and pass the data (pin)
                 let controller = storyboard?.instantiateViewControllerWithIdentifier("PhotoAlbumViewController") as! PhotoAlbumViewController
                 
+                // Pass the corresponding pin to the controller
                 controller.pin = pin
                 
-                self.navigationController?.pushViewController(controller, animated: true)
+                // Check if a photo album already exist for this pin
+                if !pin.photos.isEmpty {
+                    
+                    println("Album for this pin already exists, sequeing to the photo album ...")
+                    // If it does, segue to the album controller
+                    self.navigationController?.pushViewController(controller, animated: true)
+                }
                 
+                // Otherwise, get the images from flickr, using the pin coordinates
+                else {
+                    
+                    FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
+                        
+                        if let error = error {
+                            println(error)
+                            
+                        } else {
+                            
+                            // Check if images were found for the given location.
+                            if photos?.count == 0 {
+                                
+                                dispatch_async(dispatch_get_main_queue()) {
+                                self.displayLabelNoPhotoFound()
+                                }
+                                
+                            } else {
+                        
+                                // map the array of dictionary to photo objects
+                                var photo = photos?.map() { (dictionary: [String:AnyObject]) -> Photo in
+                                    let photo = Photo(dictionary: dictionary, context: self.sharedContext)
+                                    
+                                    photo.pin = pin
+                                
+                                    return photo
+                                }
+                         
+                                // Save the context
+                                CoreDataStackManager.sharedInstance().saveContext()
+                                
+                                // Segue to the PhotoAlbum
+                        
+                                dispatch_async(dispatch_get_main_queue()) {
+                                self.navigationController?.pushViewController(controller, animated: true)
+                                }
+                            }
+                        }
+                    }
+                }
+                // Deselect the annotation
+                mapView.deselectAnnotation(pin, animated: true)
             }
         }
        
     }
+    
     
     func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView! {
         /* Try to dequeue an existing pin view first */
@@ -209,8 +260,16 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     }
     
     
+    //MARK : 
     
-
+    
+    func displayLabelNoPhotoFound() {
+        
+        self.label.alpha = 1.0
+        
+        UIView.animateWithDuration(1.0, delay: 2.0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {self.label.alpha = 0.0}, completion: nil)
+        
+    }
 
 }
 

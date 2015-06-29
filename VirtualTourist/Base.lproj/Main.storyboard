@@ -2,6 +2,7 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="TeR-tC-SIE">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Map View Controller-->
@@ -22,17 +23,26 @@
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="xwQ-Aq-1hR"/>
                                 </connections>
                             </mapView>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No photos found at this location..." lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Nw-e7-rj1">
+                                <rect key="frame" x="170" y="291" width="261" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="elT-aA-wvp" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="6Mi-6A-ZBi"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="elT-aA-wvp" secondAttribute="bottom" id="9xS-GB-ujl"/>
+                            <constraint firstAttribute="centerX" secondItem="7Nw-e7-rj1" secondAttribute="centerX" id="Jwt-uJ-gP7"/>
                             <constraint firstItem="elT-aA-wvp" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="ePZ-Sj-n5B"/>
                             <constraint firstAttribute="trailing" secondItem="elT-aA-wvp" secondAttribute="trailing" id="npj-nF-vCS"/>
+                            <constraint firstAttribute="centerY" secondItem="7Nw-e7-rj1" secondAttribute="centerY" constant="-1.5" id="xPm-qL-trU"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="8hM-8C-8Ii"/>
                     <connections>
+                        <outlet property="label" destination="7Nw-e7-rj1" id="44q-cw-6gj"/>
                         <outlet property="mapView" destination="elT-aA-wvp" id="3vR-KL-Qp4"/>
                         <segue destination="l1G-6O-Vej" kind="show" identifier="ShowPhotoAlbumCollection" id="xPy-HK-ZYL"/>
                     </connections>
@@ -54,7 +64,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="EM4-LZ-4l4">
-                                <rect key="frame" x="0.0" y="64" width="600" height="536"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="UIy-7v-ow1">
                                     <size key="itemSize" width="50" height="50"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -69,15 +79,15 @@
                                             <rect key="frame" x="0.0" y="0.0" width="125" height="125"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="DcL-ID-Hr2">
-                                                    <rect key="frame" x="0.0" y="0.0" width="125" height="125"/>
-                                                </imageView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="b8M-yi-gCM">
                                                     <rect key="frame" x="41" y="52" width="42" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="DcL-ID-Hr2">
+                                                    <rect key="frame" x="0.0" y="0.0" width="125" height="125"/>
+                                                </imageView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
@@ -101,14 +111,37 @@
                                     <outlet property="delegate" destination="l1G-6O-Vej" id="tkX-rd-WQy"/>
                                 </connections>
                             </collectionView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="86W-3g-wbL">
+                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                                <items>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="jMz-dE-Pei"/>
+                                    <barButtonItem title="New Collection" id="Bws-ED-aPc">
+                                        <connections>
+                                            <action selector="newCollection:" destination="l1G-6O-Vej" id="tmm-R3-fL0"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="F5v-BZ-sOq"/>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstAttribute="trailing" secondItem="86W-3g-wbL" secondAttribute="trailing" id="8Cz-2W-FcD"/>
                             <constraint firstItem="EM4-LZ-4l4" firstAttribute="leading" secondItem="XYo-Uc-Aod" secondAttribute="leading" id="MZO-Ib-gVB"/>
                             <constraint firstItem="EM4-LZ-4l4" firstAttribute="top" secondItem="Tue-kr-Evg" secondAttribute="bottom" id="R1O-uW-6gD"/>
+                            <constraint firstItem="EM4-LZ-4l4" firstAttribute="top" secondItem="XYo-Uc-Aod" secondAttribute="topMargin" id="VJZ-77-0aV"/>
                             <constraint firstAttribute="trailing" secondItem="EM4-LZ-4l4" secondAttribute="trailing" id="ZRZ-HC-52r"/>
                             <constraint firstItem="NSx-oc-WYQ" firstAttribute="top" secondItem="EM4-LZ-4l4" secondAttribute="bottom" id="fRc-zx-FE9"/>
+                            <constraint firstItem="EM4-LZ-4l4" firstAttribute="top" secondItem="Tue-kr-Evg" secondAttribute="bottom" id="iTp-jK-XcS"/>
+                            <constraint firstItem="NSx-oc-WYQ" firstAttribute="top" secondItem="86W-3g-wbL" secondAttribute="bottom" id="kph-67-RVB"/>
+                            <constraint firstItem="86W-3g-wbL" firstAttribute="leading" secondItem="XYo-Uc-Aod" secondAttribute="leading" id="uCG-Rz-Awa"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="R1O-uW-6gD"/>
+                                <exclude reference="iTp-jK-XcS"/>
+                            </mask>
+                        </variation>
                     </view>
                     <connections>
                         <outlet property="photoCollectionView" destination="EM4-LZ-4l4" id="Rs1-Pj-NPF"/>

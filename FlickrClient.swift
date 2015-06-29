@@ -65,6 +65,32 @@ class FlickrClient: NSObject {
     }
     
     
+    // Task Method to download an image from a given string url
+    
+    func taskForImage (imagePath: String, completionHandler: (imageData: NSData?, error: NSError?) -> Void ) -> NSURLSessionTask {
+        
+        let url = NSURL(string: imagePath)!
+        
+        let request = NSURLRequest(URL: url)
+        
+        //Make the request
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            
+            if let error = error {
+                completionHandler(imageData: nil, error: error)
+                
+            } else {
+                completionHandler(imageData: data, error: nil)
+            }
+            
+        }
+        
+        task.resume()
+        return task
+    }
+    
+    
+    
     //MARK: - Helpers
     
     // Helper function, given a dictionary of parameters, convert to a string for a URL
@@ -96,4 +122,11 @@ class FlickrClient: NSObject {
     
         return Singleton.sharedInstance
     }
+    
+    //MARK: - Shared Cache
+    
+    struct Caches {
+        static let imageCache = ImageCache()
+    }
+    
 }

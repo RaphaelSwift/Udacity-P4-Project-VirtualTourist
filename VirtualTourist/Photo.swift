@@ -35,4 +35,16 @@ class Photo: NSManagedObject {
         
     }
     
+    
+    // Retrieves the image if existing, else saves it
+    var photoImage: UIImage? {
+        
+        get {
+            return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+        }
+        
+        set {
+            FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: imagePath)
+        }
+    }
 }
