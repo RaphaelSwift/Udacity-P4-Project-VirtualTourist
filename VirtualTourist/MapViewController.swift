@@ -18,6 +18,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     @IBOutlet weak var label: UILabel!
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var tapAndHoldGestureRecognizer: UIGestureRecognizer? = nil
     
@@ -66,6 +67,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(true)
+        
+        self.activityIndicator.stopAnimating()
         
     }
     
@@ -145,6 +148,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!) {
         
+        self.activityIndicator.startAnimating()
         
         let fetched = self.fetchedResultController.fetchedObjects as! [Pin]
         for pin in fetched {
@@ -160,12 +164,11 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
                 // Check if a photo album already exist for this pin
                 if !pin.photos.isEmpty {
                     
-                    println("Album for this pin already exists, sequeing to the photo album ...")
                     // If it does, segue to the album controller
                     self.navigationController?.pushViewController(controller, animated: true)
                 }
                 
-                // Otherwise, get the images from flickr, using the pin coordinates
+                // Otherwise, get the images paths from flickr, using the pin coordinates
                 else {
                     
                     FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
@@ -179,6 +182,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
                             if photos?.count == 0 {
                                 
                                 dispatch_async(dispatch_get_main_queue()) {
+                                self.activityIndicator.stopAnimating()
                                 self.displayLabelNoPhotoFound()
                                 }
                                 
@@ -260,7 +264,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     }
     
     
-    //MARK : 
+    //MARK : UI
     
     
     func displayLabelNoPhotoFound() {

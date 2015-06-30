@@ -9,9 +9,6 @@
 import UIKit
 import CoreData
 
-//TODO : Fix image correspoding to pins , should not be empty once downloaded
-//TODO : Should display images if already downloaded. Not saving correctly ???
-
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
     
@@ -19,6 +16,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     @IBOutlet weak var photoCollectionView: UICollectionView!
     
+    @IBOutlet weak var newCollection: UIBarButtonItem!
+    
+    var taskCounter: Int = 0
     
     // Create 3 empty arrays that will keep track of insertions, deletions, updates
     var insertedIndexPaths : [NSIndexPath]!
@@ -28,6 +28,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.newCollection.enabled = true
         
         var error: NSError? = nil
         
@@ -42,36 +44,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         // Set the delegate
         fetchedResultsController.delegate = self
 
+
     }
     
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(true)
         
-        println("Number of photos : \(pin.photos.count)")
-        
-//        if pin.photos.isEmpty {
-//            
-//            println("This pin doesn't have any photo, download...")
-//            
-//            FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
-//                
-//                if let error = error {
-//                    println(error)
-//                
-//                } else {
-//                    
-//                    // map the array of dictionary to photo objects
-//                    var photo = photos?.map() { (dictionary: [String:AnyObject]) -> Photo in
-//                        let photo = Photo(dictionary: dictionary, context: self.sharedContext)
-//                        
-//                        photo.pin = self.pin
-//                        
-//                        return photo
-//                    }
-//                }
-//            }
-//        }
     }
     
     // Layout collection view
@@ -123,7 +102,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = fetchedResultsController.sections![section] as! NSFetchedResultsSectionInfo
-        println(" Collection View, number of objects in section : \(sectionInfo.numberOfObjects)")
         return sectionInfo.numberOfObjects
     }
     
@@ -144,26 +122,57 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         // Delete an image from the album when it is selected
         let photo = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         
-        // Remove it from the cache and document directory
-        FlickrClient.Caches.imageCache.deleteImage(photo.imagePath)
+        // The removal from the cache and document directory is done directly from the Photo NSManaged object entity, check "Photo" for details
         
-        // Delete is from the context
+        // Remove the object from the shared context, which prepare the object to be deleted from the persistent store
         sharedContext.deleteObject(photo)
         
         // Save the context with the change (ie. delete)
         CoreDataStackManager.sharedInstance().saveContext()
-        
         
     }
     
     
     //MARK: Actions
     
+    //Download a new collection of data
     @IBAction func newCollection(sender: UIBarButtonItem) {
         
-        //TODO: Download a new collection of data
         
-        println(FlickrClient.sharedInstance().session.description)
+        // Remove the object from the shared context
+        for photo in fetchedResultsController.fetchedObjects as! [Photo]{
+            sharedContext.deleteObject(photo)
+        }
+        
+        // The removal from the cache and document directory is done directly from the Photo NSManaged object entity, check "Photo" for details
+        
+        // Delete the object from the persistent store
+        CoreDataStackManager.sharedInstance().saveContext()
+        
+        
+        // Download a new set of Data
+        FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
+            
+            if let error = error {
+                println(error)
+                
+            } else {
+                
+                // map the array of dictionary to photo objects
+                var photo = photos?.map() { (dictionary: [String:AnyObject]) -> Photo in
+                    let photo = Photo(dictionary: dictionary, context: self.sharedContext)
+                    
+                    photo.pin = self.pin
+                    
+                    return photo
+                }
+            }
+            dispatch_async(dispatch_get_main_queue()) {
+            // Save the objects in the persistent store
+            CoreDataStackManager.sharedInstance().saveContext()
+            }
+        }
+        
     }
     
     
@@ -228,6 +237,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             
             }, completion: nil)
         
+        
     }
     
     
@@ -235,24 +245,30 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     func configureCell(cell: PhotoAlbumCollectionViewCell, photo: Photo) {
         
-        cell.label.text = photo.imagePath
-        cell.photoImageView.image = nil
+        cell.photoImageView.backgroundColor = UIColor.whiteColor()
+        cell.photoImageView.image = UIImage(named: "Placeholder")
         
         
         // If the image has already been downloaded, display it
         if let photo = photo.photoImage {
             cell.photoImageView.image = photo
-            
-            print("has already been downloaded")
+    
         }
 
         // Else, download it
         else {
+            
+            // Add a task to the task counter
+            self.incrementTaskCounter(incrementTrueDecrementFalse: true)
+            
             // We download the images one by one asyncronously
             let task = FlickrClient.sharedInstance().taskForImage(photo.imagePath) { data, error in
             
                 if let error = error {
-                    print("Error to download the image : \(error.localizedDescription)")
+                    println("Error to download the image : \(error.localizedDescription)")
+                    
+                    //The task has been cancelled => remove a task from the task counter
+                    self.incrementTaskCounter(incrementTrueDecrementFalse: false)
                 }
             
                 if let data = data {
@@ -260,21 +276,49 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     let photoImage = UIImage(data: data)
                 
                     //update the model, cash the image
-                
+                    
                     photo.photoImage = photoImage
                 
                     // Update on the main thread later
                     dispatch_async(dispatch_get_main_queue()) {
                     cell.photoImageView.image = photoImage
+                     
+                    // The task completed, the image has been downloaded and displayed => remove a task from the task counter
+                    self.incrementTaskCounter(incrementTrueDecrementFalse: false)
+                    
                     }
                 }
             
             }
+            
             cell.taskToCancelIfCellIsReused = task
+            
+            
         }
 
     }
     
+   
+    //MARK: Helper
+    
+    // This function increment or decrement the taskCounter variable, and check its value. If its value equals 0 (meaning no download tasks are still active), the button is enabled, else, it is disabled.
+    func incrementTaskCounter(incrementTrueDecrementFalse increment: Bool) {
+        
+        if increment {
+            self.taskCounter++
+        
+        } else {
+            self.taskCounter--
+            
+        }
+        
+        
+        if self.taskCounter == 0 {
+            self.newCollection.enabled = true
+        } else {
+            self.newCollection.enabled = false
+        }
+    }
 }
     
 

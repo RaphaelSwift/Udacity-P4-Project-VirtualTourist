@@ -12,6 +12,5 @@ import UIKit
 class PhotoAlbumCollectionViewCell: TaskCancelingCollectionViewCell {
     
     @IBOutlet weak var photoImageView: UIImageView!
-    @IBOutlet weak var label: UILabel!
     
 }

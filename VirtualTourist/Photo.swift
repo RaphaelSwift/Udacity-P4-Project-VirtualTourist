@@ -17,8 +17,10 @@ class Photo: NSManagedObject {
         static let ImagePath = "url_m"
     }
     
-    @NSManaged var imagePath: String
+    @NSManaged var imagePath: String 
     @NSManaged var pin : Pin?
+    
+
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
@@ -34,6 +36,16 @@ class Photo: NSManagedObject {
         imagePath = dictionary[Photo.Keys.ImagePath] as! String
         
     }
+    
+    // When the context is saved, we want to check if the object has been deleted, if it has effectively been, we want to remove it from the cache and document directory as well
+    override func didSave() {
+        
+        if self.deleted {
+        
+            FlickrClient.Caches.imageCache.deleteImage(imagePath)
+        }
+    }
+    
     
     
     // Retrieves the image if existing, else saves it

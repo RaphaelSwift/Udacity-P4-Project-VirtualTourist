@@ -89,8 +89,6 @@ class FlickrClient: NSObject {
         return task
     }
     
-    
-    
     //MARK: - Helpers
     
     // Helper function, given a dictionary of parameters, convert to a string for a URL

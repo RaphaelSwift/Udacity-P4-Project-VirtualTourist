@@ -29,19 +29,25 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="LNt-gF-X2S">
+                                <rect key="frame" x="290" y="290" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="elT-aA-wvp" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="6Mi-6A-ZBi"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="elT-aA-wvp" secondAttribute="bottom" id="9xS-GB-ujl"/>
                             <constraint firstAttribute="centerX" secondItem="7Nw-e7-rj1" secondAttribute="centerX" id="Jwt-uJ-gP7"/>
+                            <constraint firstAttribute="centerY" secondItem="LNt-gF-X2S" secondAttribute="centerY" id="T39-bl-Dfs"/>
                             <constraint firstItem="elT-aA-wvp" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="ePZ-Sj-n5B"/>
                             <constraint firstAttribute="trailing" secondItem="elT-aA-wvp" secondAttribute="trailing" id="npj-nF-vCS"/>
+                            <constraint firstAttribute="centerX" secondItem="LNt-gF-X2S" secondAttribute="centerX" id="pEk-9k-pAd"/>
                             <constraint firstAttribute="centerY" secondItem="7Nw-e7-rj1" secondAttribute="centerY" constant="-1.5" id="xPm-qL-trU"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="8hM-8C-8Ii"/>
                     <connections>
+                        <outlet property="activityIndicator" destination="LNt-gF-X2S" id="mm0-2A-pb6"/>
                         <outlet property="label" destination="7Nw-e7-rj1" id="44q-cw-6gj"/>
                         <outlet property="mapView" destination="elT-aA-wvp" id="3vR-KL-Qp4"/>
                         <segue destination="l1G-6O-Vej" kind="show" identifier="ShowPhotoAlbumCollection" id="xPy-HK-ZYL"/>
@@ -79,12 +85,6 @@
                                             <rect key="frame" x="0.0" y="0.0" width="125" height="125"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="b8M-yi-gCM">
-                                                    <rect key="frame" x="41" y="52" width="42" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="DcL-ID-Hr2">
                                                     <rect key="frame" x="0.0" y="0.0" width="125" height="125"/>
                                                 </imageView>
@@ -93,15 +93,12 @@
                                         </view>
                                         <constraints>
                                             <constraint firstItem="DcL-ID-Hr2" firstAttribute="top" secondItem="Wgt-fJ-8v0" secondAttribute="top" id="0Jn-Vp-71W"/>
-                                            <constraint firstItem="b8M-yi-gCM" firstAttribute="centerX" secondItem="DcL-ID-Hr2" secondAttribute="centerX" constant="-0.5" id="Gi6-UB-wIb"/>
                                             <constraint firstAttribute="trailing" secondItem="DcL-ID-Hr2" secondAttribute="trailing" id="IKX-G3-is5"/>
                                             <constraint firstAttribute="bottom" secondItem="DcL-ID-Hr2" secondAttribute="bottom" id="ZTp-4R-TaD"/>
                                             <constraint firstItem="DcL-ID-Hr2" firstAttribute="leading" secondItem="Wgt-fJ-8v0" secondAttribute="leading" id="m7t-46-s40"/>
-                                            <constraint firstItem="b8M-yi-gCM" firstAttribute="centerY" secondItem="DcL-ID-Hr2" secondAttribute="centerY" id="sMK-GE-qz7"/>
                                         </constraints>
                                         <size key="customSize" width="125" height="125"/>
                                         <connections>
-                                            <outlet property="label" destination="b8M-yi-gCM" id="IE0-f5-XQZ"/>
                                             <outlet property="photoImageView" destination="DcL-ID-Hr2" id="50B-Zw-cgI"/>
                                         </connections>
                                     </collectionViewCell>
@@ -144,6 +141,7 @@
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="newCollection" destination="Bws-ED-aPc" id="SQd-tG-0Wu"/>
                         <outlet property="photoCollectionView" destination="EM4-LZ-4l4" id="Rs1-Pj-NPF"/>
                     </connections>
                 </viewController>

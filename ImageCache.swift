@@ -59,6 +59,7 @@ class ImageCache {
         // And in documents directory
         let data = UIImagePNGRepresentation(image!)
         data.writeToFile(path, atomically: true)
+
     }
     
     //MARK: - Delete images
@@ -70,23 +71,35 @@ class ImageCache {
         //Remove it from the cache
         inMemoryCache.removeObjectForKey(path)
         
+        var error: NSError? = nil
+        
         //Delete it from the document directory
-        NSFileManager.defaultManager().removeItemAtPath(identifier, error: nil)
-        
-        if !NSFileManager.defaultManager().fileExistsAtPath(path) {
-            println("doesn't exist anymore")
+        if NSFileManager.defaultManager().fileExistsAtPath(path) {
+            
+            NSFileManager.defaultManager().removeItemAtPath(path, error: &error)
+            
+            if let error = error {
+                println(error)
+            }
         }
-        
     }
     
     // Helper
     
     func pathForIdentifier(identifier: String) -> String {
         
+        // character "/" is not allowed in a filename, thus we have to replace it by a allowed character , see function for detail
+        let escapedIdentifier = escapedCharacters(identifier)
+        
         let documentDirectory: NSURL = NSFileManager.defaultManager().URLsForDirectory(NSSearchPathDirectory.DocumentDirectory, inDomains: NSSearchPathDomainMask.UserDomainMask).first as! NSURL
-        let fullPathUrl = documentDirectory.URLByAppendingPathComponent(identifier)
+        let fullPathUrl = documentDirectory.URLByAppendingPathComponent(escapedIdentifier)
     
         return fullPathUrl.path!
+    }
+    
+    func escapedCharacters (string: String) -> String {
+        
+        return string.stringByReplacingOccurrencesOfString("/", withString: "_", options: NSStringCompareOptions.LiteralSearch)
     }
     
 }
