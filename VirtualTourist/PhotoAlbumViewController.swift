@@ -38,7 +38,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         fetchedResultsController.performFetch(&error)
         
         if let error = error {
-            println(error.localizedDescription)
+            //Handle error
         }
         
         // Set the delegate
@@ -154,7 +154,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
             
             if let error = error {
-                println(error)
+                //Handle error
                 
             } else {
                 
@@ -218,10 +218,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         // loop through the arrays and perform the changes
         
-        println("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
+        dispatch_async(dispatch_get_main_queue()) {
         
-        
-        photoCollectionView.performBatchUpdates({() -> Void in
+        self.photoCollectionView.performBatchUpdates({() -> Void in
             
             for indexPath in self.insertedIndexPaths {
                 self.photoCollectionView.insertItemsAtIndexPaths([indexPath])
@@ -237,6 +236,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             
             }, completion: nil)
         
+        }
         
     }
     
@@ -265,7 +265,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             let task = FlickrClient.sharedInstance().taskForImage(photo.imagePath) { data, error in
             
                 if let error = error {
-                    println("Error to download the image : \(error.localizedDescription)")
                     
                     //The task has been cancelled => remove a task from the task counter
                     self.incrementTaskCounter(incrementTrueDecrementFalse: false)

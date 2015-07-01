@@ -58,7 +58,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
         fetchedResultController.performFetch(&error)
         
         if let error = error {
-            println(error.localizedDescription)
+            //Handle error
         }
         
         self.mapView.addAnnotations(self.fetchedResultController.fetchedObjects)
@@ -75,7 +75,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     //MARK: Helpers functions 
     
     //Convert an array of pins to an array of MKAnnotation
-    
     func convertPinsToAnnotations(pins: [Pin]) -> [MKPointAnnotation] {
         
         let annotations = pins.map {
@@ -174,7 +173,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
                     FlickrClient.sharedInstance().getImagesFromFlickrBySearch(searchLongitude: pin.coordinate.longitude, searchLatitude: pin.coordinate.latitude) { photos, error in
                         
                         if let error = error {
-                            println(error)
+                            //Handle error
                             
                         } else {
                             
@@ -213,7 +212,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
                 mapView.deselectAnnotation(pin, animated: true)
             }
         }
-       
     }
     
     
@@ -244,7 +242,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     
     //MARK: - NSFetchedResultsControllerDelegate methods
 
-    
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         
         switch type {
@@ -263,9 +260,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
         }
     }
     
-    
     //MARK : UI
-    
     
     func displayLabelNoPhotoFound() {
         
